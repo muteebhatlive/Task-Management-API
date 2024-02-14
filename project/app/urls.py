@@ -3,12 +3,14 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from django.urls import path, include
-from .views import UserRegisterAPIView, UserLoginAPIView
+from .views import *
 
 urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', UserRegisterAPIView.as_view(), name='user-register'),
     path('login/', UserLoginAPIView.as_view(), name='user-login'),
+    path('tasks/', TaskListAPIView.as_view(), name='task-list'),
+
 
 ]

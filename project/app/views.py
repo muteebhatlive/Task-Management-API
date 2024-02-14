@@ -4,9 +4,12 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class UserRegisterAPIView(APIView):
+    authentication_classes =  [ JWTAuthentication ]
+    permission_classes =  [ IsAuthenticated ]
     def post(self, request):
         serializer = CreateUserSerializer(data=request.data)
         if serializer.is_valid():
@@ -27,4 +30,24 @@ class UserLoginAPIView(APIView):
                 })
             else:
                 return Response({"error": "Invalid username or password."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TaskListAPIView(APIView):
+    def get(self, request):
+        tasks = Task.objects.all()
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        data = request.data
+        data['owner'] = request.user.id 
+        print(data)
+        serializer = TaskSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        elif len(serializer.errors) == 1 and 'owner' in serializer.errors:
+            # If only 'owner' field error is present, replace it with a token error
+            return Response({"detail": ["Authentication credentials were not provided."]}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
