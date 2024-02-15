@@ -55,3 +55,20 @@ class TaskAPITestCase(TestCase):
     
 
 
+class TaskDetailAPITestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user_data = {'email': 'test@example.com', 'username': 'testuser', 'password': 'testpassword'}
+        self.user = User.objects.create_user(**self.user_data)
+        self.refresh_token = RefreshToken.for_user(self.user)
+        self.access_token = str(self.refresh_token.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.task = Task.objects.create(title='Test Task', description='This is a test task.', due_date='2024-02-20', status='TODO', owner=self.user)
+        self.task_detail_url = reverse('task-detail', args=[self.task.pk])
+
+    def test_retrieve_task_permission(self):
+        response = self.client.get(self.task_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+
