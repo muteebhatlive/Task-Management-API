@@ -63,12 +63,23 @@ class TaskDetailAPITestCase(TestCase):
         self.refresh_token = RefreshToken.for_user(self.user)
         self.access_token = str(self.refresh_token.access_token)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
-        self.task = Task.objects.create(title='Test Task', description='This is a test task.', due_date='2024-02-20', status='TODO', owner=self.user)
+        self.task = Task.objects.create(title='Test Task', description='This is a test task.', due_date='2024-02-20', status='Completed', owner=self.user)
         self.task_detail_url = reverse('task-detail', args=[self.task.pk])
 
     def test_retrieve_task_permission(self):
         response = self.client.get(self.task_detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    
+    def test_update_task_permission(self):
+            updated_data = {'title': 'Updated Task', 'description': 'This is an updated task.', 'due_date': '2024-02-21', 'status': 'Completed'}
+            response = self.client.put(self.task_detail_url, updated_data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data['title'], updated_data['title'])
+            
+    def test_delete_task_permission(self):
+        response = self.client.delete(self.task_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
 
